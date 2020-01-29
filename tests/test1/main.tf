@@ -73,26 +73,24 @@ module "alb" {
   }]
 }
 
-# To be enabled after https://github.com/rackspace-infrastructure-automation/aws-terraform-internal/issues/140 is resolved
-#
-# module "clb" {
-#   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=master"
-#
-#   clb_name                    = "${random_string.rstring.result}-CLB"
-#   instances                   = []
-#   security_groups             = ["${module.security_groups.public_web_security_group_id}"]
-#   subnets                     = "${module.vpc.public_subnets}"
-#   connection_draining_timeout = 300
-#
-#   listeners = [
-#     {
-#       instance_port     = 80
-#       instance_protocol = "HTTP"
-#       lb_port           = 80
-#       lb_protocol       = "HTTP"
-#     },
-#   ]
-# }
+module "clb" {
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=master"
+
+  clb_name                    = "${random_string.rstring.result}-CLB"
+  instances                   = []
+  security_groups             = ["${module.security_groups.public_web_security_group_id}"]
+  subnets                     = "${module.vpc.public_subnets}"
+  connection_draining_timeout = 300
+
+  listeners = [
+    {
+      instance_port     = 80
+      instance_protocol = "HTTP"
+      lb_port           = 80
+      lb_protocol       = "HTTP"
+    },
+  ]
+}
 
 module "codedeploy" {
   source = "../../module"
@@ -110,14 +108,11 @@ module "codedeploy_tg" {
   target_group_name     = "${element(module.alb.target_group_names, 0)}"
 }
 
-# To be enabled after https://github.com/rackspace-infrastructure-automation/aws-terraform-internal/issues/140 is resolved
-#
-# module "codedeploy_clb" {
-#   source = "../../module"
-#
-#   application_name      = "${module.codedeploy.application_name}"
-#   clb_name              = "${module.clb.clb_name}"
-#   create_application    = false
-#   deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
-# }
+module "codedeploy_clb" {
+  source = "../../module"
 
+  application_name      = "${module.codedeploy.application_name}"
+  clb_name              = "${module.clb.clb_name}"
+  create_application    = false
+  deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
+}
