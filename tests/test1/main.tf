@@ -8,7 +8,7 @@ provider "random" {
 }
 
 resource "random_string" "rstring" {
-  length      = 16
+  length      = 15
   special     = false
   min_upper   = 1
   min_lower   = 1
@@ -36,13 +36,13 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=tf_v0.11"
 
   vpc_name = "${random_string.rstring.result}-VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=tf_v0.11"
 
   resource_name = "${random_string.rstring.result}-SG"
   vpc_id        = "${module.vpc.vpc_id}"
@@ -50,7 +50,7 @@ module "security_groups" {
 }
 
 module "alb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=tf_v0.11"
 
   alb_name              = "${random_string.rstring.result}-ALB"
   create_logging_bucket = false
@@ -73,26 +73,24 @@ module "alb" {
   }]
 }
 
-# To be enabled after https://github.com/rackspace-infrastructure-automation/aws-terraform-internal/issues/140 is resolved
-#
-# module "clb" {
-#   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=master"
-#
-#   clb_name                    = "${random_string.rstring.result}-CLB"
-#   instances                   = []
-#   security_groups             = ["${module.security_groups.public_web_security_group_id}"]
-#   subnets                     = "${module.vpc.public_subnets}"
-#   connection_draining_timeout = 300
-#
-#   listeners = [
-#     {
-#       instance_port     = 80
-#       instance_protocol = "HTTP"
-#       lb_port           = 80
-#       lb_protocol       = "HTTP"
-#     },
-#   ]
-# }
+module "clb" {
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=master"
+
+  clb_name                    = "${random_string.rstring.result}-CLB"
+  instances                   = []
+  security_groups             = ["${module.security_groups.public_web_security_group_id}"]
+  subnets                     = "${module.vpc.public_subnets}"
+  connection_draining_timeout = 300
+
+  listeners = [
+    {
+      instance_port     = 80
+      instance_protocol = "HTTP"
+      lb_port           = 80
+      lb_protocol       = "HTTP"
+    },
+  ]
+}
 
 module "codedeploy" {
   source = "../../module"
@@ -110,14 +108,11 @@ module "codedeploy_tg" {
   target_group_name     = "${element(module.alb.target_group_names, 0)}"
 }
 
-# To be enabled after https://github.com/rackspace-infrastructure-automation/aws-terraform-internal/issues/140 is resolved
-#
-# module "codedeploy_clb" {
-#   source = "../../module"
-#
-#   application_name      = "${module.codedeploy.application_name}"
-#   clb_name              = "${module.clb.clb_name}"
-#   create_application    = false
-#   deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
-# }
+module "codedeploy_clb" {
+  source = "../../module"
 
+  application_name      = "${module.codedeploy.application_name}"
+  clb_name              = "${module.clb.clb_name}"
+  create_application    = false
+  deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
+}
