@@ -22,8 +22,9 @@
  */
 
 locals {
-  application_name      = "${element(concat(aws_codedeploy_app.application.*.name, list(var.application_name)), 0)}"
-  deployment_group_name = "${var.deployment_group_name == "" ? "${var.application_name}-${var.environment}" : var.deployment_group_name}"
+  application_name              = "${element(concat(aws_codedeploy_app.application.*.name, list(var.application_name)), 0)}"
+  default_deployment_group_name = "${var.application_name}-${var.environment}"
+  deployment_group_name         = "${var.deployment_group_name == "" ? local.default_deployment_group_name : var.deployment_group_name}"
 
   ec2_tag_filters = {
     enabled = [{
