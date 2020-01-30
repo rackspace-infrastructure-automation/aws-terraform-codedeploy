@@ -8,7 +8,7 @@ provider "random" {
 }
 
 resource "random_string" "rstring" {
-  length      = 16
+  length      = 15
   special     = false
   min_upper   = 1
   min_lower   = 1
@@ -36,13 +36,13 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=tf_v0.11"
 
   vpc_name = "${random_string.rstring.result}-VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=tf_v0.11"
 
   resource_name = "${random_string.rstring.result}-SG"
   vpc_id        = "${module.vpc.vpc_id}"
@@ -50,7 +50,7 @@ module "security_groups" {
 }
 
 module "alb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=tf_v0.11"
 
   alb_name              = "${random_string.rstring.result}-ALB"
   create_logging_bucket = false
