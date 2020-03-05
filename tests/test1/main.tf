@@ -36,21 +36,21 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=tf_v0.11"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.0.10"
 
   vpc_name = "${random_string.rstring.result}-VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=tf_v0.11"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.0.6"
 
+  environment   = "Production"
   resource_name = "${random_string.rstring.result}-SG"
   vpc_id        = "${module.vpc.vpc_id}"
-  environment   = "Production"
 }
 
 module "alb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=tf_v0.11"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=v0.0.11"
 
   alb_name              = "${random_string.rstring.result}-ALB"
   create_logging_bucket = false
@@ -61,26 +61,25 @@ module "alb" {
   vpc_id                = "${module.vpc.vpc_id}"
 
   http_listeners = [{
-    port = 80
-
+    port     = 80
     protocol = "HTTP"
   }]
 
   target_groups = [{
-    "name"             = "${random_string.rstring.result}-TargetGroup"
-    "backend_protocol" = "HTTP"
     "backend_port"     = 80
+    "backend_protocol" = "HTTP"
+    "name"             = "${random_string.rstring.result}-TargetGroup"
   }]
 }
 
 module "clb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=master"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.0.8"
 
   clb_name                    = "${random_string.rstring.result}-CLB"
+  connection_draining_timeout = 300
   instances                   = []
   security_groups             = ["${module.security_groups.public_web_security_group_id}"]
   subnets                     = "${module.vpc.public_subnets}"
-  connection_draining_timeout = 300
 
   listeners = [
     {
