@@ -32,19 +32,19 @@ module "vpc" {
 module "security_groups" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.0.6"
 
+  environment   = "Production"
   resource_name = "Test-SG"
   vpc_id        = "${module.vpc.vpc_id}"
-  environment   = "Production"
 }
 
 module "clb" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.0.8"
 
+  connection_draining_timeout = 300
   clb_name                    = "CodeDeployExample-CLB"
   instances                   = []
   security_groups             = ["${module.security_groups.public_web_security_group_id}"]
   subnets                     = "${module.vpc.public_subnets}"
-  connection_draining_timeout = 300
 
   listeners = [
     {

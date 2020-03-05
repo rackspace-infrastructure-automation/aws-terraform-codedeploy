@@ -32,9 +32,9 @@ module "vpc" {
 module "security_groups" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.0.6"
 
+  environment   = "Production"
   resource_name = "Test-SG"
   vpc_id        = "${module.vpc.vpc_id}"
-  environment   = "Production"
 }
 
 module "asg_prod" {
@@ -77,8 +77,8 @@ module "codedeploy_test" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.0.3"
 
   application_name       = "${module.codedeploy_prod.application_name}"
-  create_application     = false
   autoscaling_groups     = ["${module.asg_test.asg_name_list}"]
+  create_application     = false
   deployment_config_name = "CodeDeployDefault.AllAtOnce"
   environment            = "Test"
 }
