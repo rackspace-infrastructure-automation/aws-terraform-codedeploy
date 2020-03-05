@@ -1,24 +1,24 @@
-/**
+/*
  * # aws-terraform-codedeploy
  *
- *This module creates a CodeDeploy deployment group and optionally a CodeDeploy application.
+ * This module creates a CodeDeploy deployment group and optionally a CodeDeploy application.
  *
- *## Basic Usage
+ * ## Basic Usage
  *
- *```
- *module "codedeploy_prod" {
-   *source = "../codedeploy"
+ * ```
+ * module "codedeploy_prod" {
+ *   source = "../codedeploy"
  *
- *  application_name   = "MyCodeDeployApp"
- *  autoscaling_groups = ["${module.asg_prod.asg_name_list}"]
- *  environment        = "Prod"
- *}
- *```
+ *   application_name   = "MyCodeDeployApp"
+ *   autoscaling_groups = ["${module.asg_prod.asg_name_list}"]
+ *   environment        = "Prod"
+ * }
+ * ```
  *
  * Full working references are available at [examples](examples)
  * ## Limitations
  *
- * AWS APIs do not properly clear out the load_balancer_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when thereferences are completely removed.
+ * AWS APIs do not properly clear out the load_balancer_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when the references are completely removed.
  */
 
 locals {
