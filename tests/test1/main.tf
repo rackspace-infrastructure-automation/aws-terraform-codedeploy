@@ -1,10 +1,14 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  version = "~> 1.2"
+  version = "~> 2.7"
   region  = "us-east-1"
 }
 
 provider "random" {
-  version = "~> 1.0"
+  version = "~> 2.1"
 }
 
 resource "random_string" "rstring" {
@@ -44,9 +48,9 @@ module "vpc" {
 module "security_groups" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.12.0"
 
-  environment   = "Production"
-  name          = "${random_string.rstring.result}-SG"
-  vpc_id        = "${module.vpc.vpc_id}"
+  environment = "Production"
+  name        = "${random_string.rstring.result}-SG"
+  vpc_id      = module.vpc.vpc_id
 }
 
 module "alb" {
@@ -54,22 +58,26 @@ module "alb" {
 
   create_logging_bucket = false
   http_listeners_count  = 1
-  name              = "${random_string.rstring.result}-ALB"
-  security_groups       = ["${module.security_groups.public_web_security_group_id}"]
-  subnets               = "${module.vpc.public_subnets}"
+  name                  = "${random_string.rstring.result}-ALB"
+  security_groups       = [module.security_groups.public_web_security_group_id]
+  subnets               = module.vpc.public_subnets
   target_groups_count   = 1
-  vpc_id                = "${module.vpc.vpc_id}"
+  vpc_id                = module.vpc.vpc_id
 
-  http_listeners = [{
-    port     = 80
-    protocol = "HTTP"
-  }]
+  http_listeners = [
+    {
+      port     = 80
+      protocol = "HTTP"
+    },
+  ]
 
-  target_groups = [{
-    "backend_port"     = 80
-    "backend_protocol" = "HTTP"
-    "name"             = "${random_string.rstring.result}-TargetGroup"
-  }]
+  target_groups = [
+    {
+      "backend_port"     = 80
+      "backend_protocol" = "HTTP"
+      "name"             = "${random_string.rstring.result}-TargetGroup"
+    },
+  ]
 }
 
 module "clb" {
@@ -78,8 +86,8 @@ module "clb" {
   connection_draining_timeout = 300
   instances                   = []
   name                        = "${random_string.rstring.result}-CLB"
-  security_groups             = ["${module.security_groups.public_web_security_group_id}"]
-  subnets                     = "${module.vpc.public_subnets}"
+  security_groups             = [module.security_groups.public_web_security_group_id]
+  subnets                     = module.vpc.public_subnets
 
   listeners = [
     {
@@ -95,23 +103,24 @@ module "codedeploy" {
   source = "../../module"
 
   application_name  = "${random_string.rstring.result}-APP"
-  target_group_name = "${element(module.alb.target_group_names, 0)}"
+  target_group_name = element(module.alb.target_group_names, 0)
 }
 
 module "codedeploy_tg" {
   source = "../../module"
 
-  application_name      = "${module.codedeploy.application_name}"
+  application_name      = module.codedeploy.application_name
   create_application    = false
   deployment_group_name = "${random_string.rstring.result}-DeployGroup-TG"
-  target_group_name     = "${element(module.alb.target_group_names, 0)}"
+  target_group_name     = element(module.alb.target_group_names, 0)
 }
 
 module "codedeploy_clb" {
   source = "../../module"
 
-  application_name      = "${module.codedeploy.application_name}"
-  clb_name              = "${module.clb.clb_name}"
+  application_name      = module.codedeploy.application_name
+  clb_name              = module.clb.clb_name
   create_application    = false
   deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
 }
+
