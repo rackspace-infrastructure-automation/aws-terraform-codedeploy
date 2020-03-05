@@ -36,25 +36,25 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.0.10"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.12.0"
 
-  vpc_name = "${random_string.rstring.result}-VPC"
+  name = "${random_string.rstring.result}-VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.0.6"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.12.0"
 
   environment   = "Production"
-  resource_name = "${random_string.rstring.result}-SG"
+  name          = "${random_string.rstring.result}-SG"
   vpc_id        = "${module.vpc.vpc_id}"
 }
 
 module "alb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=v0.0.11"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=v0.12.0"
 
-  alb_name              = "${random_string.rstring.result}-ALB"
   create_logging_bucket = false
   http_listeners_count  = 1
+  name              = "${random_string.rstring.result}-ALB"
   security_groups       = ["${module.security_groups.public_web_security_group_id}"]
   subnets               = "${module.vpc.public_subnets}"
   target_groups_count   = 1
@@ -73,11 +73,11 @@ module "alb" {
 }
 
 module "clb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.0.8"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.12.0"
 
-  clb_name                    = "${random_string.rstring.result}-CLB"
   connection_draining_timeout = 300
   instances                   = []
+  name                        = "${random_string.rstring.result}-CLB"
   security_groups             = ["${module.security_groups.public_web_security_group_id}"]
   subnets                     = "${module.vpc.public_subnets}"
 
