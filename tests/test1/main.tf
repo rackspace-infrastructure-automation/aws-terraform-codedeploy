@@ -85,6 +85,7 @@ module "clb" {
 
   connection_draining_timeout = 300
   instances                   = []
+  instances_count             = 0
   name                        = "${random_string.rstring.result}-CLB"
   security_groups             = [module.security_groups.public_web_security_group_id]
   subnets                     = module.vpc.public_subnets
@@ -106,6 +107,7 @@ module "codedeploy" {
   target_group_name = element(module.alb.target_group_names, 0)
 }
 
+
 module "codedeploy_tg" {
   source = "../../module"
 
@@ -119,8 +121,9 @@ module "codedeploy_clb" {
   source = "../../module"
 
   application_name      = module.codedeploy.application_name
-  clb_name              = module.clb.clb_name
+  clb_name              = module.clb.name
   create_application    = false
   deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
 }
+
 

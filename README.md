@@ -6,10 +6,10 @@ This module creates a CodeDeploy deployment group and optionally a CodeDeploy ap
 
 ```
 module "codedeploy_prod" {
-  source = "../codedeploy"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
 
   application_name   = "MyCodeDeployApp"
-  autoscaling_groups = ["${module.asg_prod.asg_name_list}"]
+  autoscaling_groups = ["myASG"]
   environment        = "Prod"
 }
 ```
@@ -20,8 +20,7 @@ Full working references are available at [examples](examples)
 AWS APIs do not properly clear out the load\_balancer\_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when the references are completely removed.
 
 ## Terraform 0.12 upgrade
-
-Several changes were required while adding terraform 0.12 compatibility.  The following changes should be
+ No changes are necessary when upgrading to the 0.12 compliant version of this module.
 
 ## Providers
 
