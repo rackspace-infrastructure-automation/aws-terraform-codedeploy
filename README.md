@@ -6,10 +6,10 @@ This module creates a CodeDeploy deployment group and optionally a CodeDeploy ap
 
 ```
 module "codedeploy_prod" {
-  source = "../codedeploy"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
 
   application_name   = "MyCodeDeployApp"
-  autoscaling_groups = ["${module.asg_prod.asg_name_list}"]
+  autoscaling_groups = ["myASG"]
   environment        = "Prod"
 }
 ```
@@ -19,20 +19,23 @@ Full working references are available at [examples](examples)
 
 AWS APIs do not properly clear out the load\_balancer\_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when the references are completely removed.
 
+## Terraform 0.12 upgrade
+ No changes are necessary when upgrading to the 0.12 compliant version of this module.
+
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | n/a |
+| aws | ~> 2.7 |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:-----:|
 | application\_name | CodeDeploy Application Name.  If an existing Application is being associated, 'create\_application' should be set to false | `string` | n/a | yes |
-| autoscaling\_groups | A List of Autoscaling Group names to associate with the Deployment Group | `list` | `[]` | no |
+| autoscaling\_groups | A List of Autoscaling Group names to associate with the Deployment Group | `list(string)` | `[]` | no |
 | clb\_name | The name of the CLB to associate with this Deployment Group.  If associated, the instances will be taken out of service while the application is deployed.   This variable cannot be used in conjunction with target\_group\_name. | `string` | `""` | no |
-| create\_application | Boolean variable controlling if a new CodeDeploy application should be created. | `string` | `true` | no |
+| create\_application | Boolean variable controlling if a new CodeDeploy application should be created. | `bool` | `true` | no |
 | deployment\_config\_name | CodeDeploy Deployment Config Name to use as the default for this Deployment Group.  Valid values include 'CodeDeployDefault.OneAtATime', 'CodeDeployDefault.HalfAtATime', and 'CodeDeployDefault.AllAtOnce' | `string` | `"CodeDeployDefault.OneAtATime"` | no |
 | deployment\_group\_name | CodeDeploy Deployment Group Name.  If omitted, name will be based on Application Group and Environment | `string` | `""` | no |
 | ec2\_tag\_key | Tag key for the Deployment Groups EC2 Tag Filter.  If omitted, no EC2 Tag Filter will be applied. | `string` | `""` | no |

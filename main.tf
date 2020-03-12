@@ -7,10 +7,10 @@
  *
  * ```
  * module "codedeploy_prod" {
- *   source = "../codedeploy"
+ *   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
  *
  *   application_name   = "MyCodeDeployApp"
- *   autoscaling_groups = ["${module.asg_prod.asg_name_list}"]
+ *   autoscaling_groups = ["myASG"]
  *   environment        = "Prod"
  * }
  * ```
@@ -19,54 +19,44 @@
  * ## Limitations
  *
  * AWS APIs do not properly clear out the load_balancer_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when the references are completely removed.
+ *
+ * ## Terraform 0.12 upgrade
+ *  No changes are necessary when upgrading to the 0.12 compliant version of this module.
  */
 
+terraform {
+  required_version = ">= 0.12"
+
+  required_providers {
+    aws = "~> 2.7"
+  }
+}
+
 locals {
-  application_name              = "${element(concat(aws_codedeploy_app.application.*.name, list(var.application_name)), 0)}"
+  application_name = element(
+    concat(
+      aws_codedeploy_app.application.*.name,
+      [var.application_name],
+    ),
+    0,
+  )
   default_deployment_group_name = "${var.application_name}-${var.environment}"
-  deployment_group_name         = "${var.deployment_group_name == "" ? local.default_deployment_group_name : var.deployment_group_name}"
+  deployment_group_name         = var.deployment_group_name == "" ? local.default_deployment_group_name : var.deployment_group_name
 
   ec2_tag_filters = {
-    enabled = [{
-      key   = "${var.ec2_tag_key}"
-      type  = "KEY_AND_VALUE"
-      value = "${var.ec2_tag_value}"
-    }]
+    key   = var.ec2_tag_key
+    type  = "KEY_AND_VALUE"
+    value = var.ec2_tag_value
 
-    disabled = "${list()}"
   }
 
-  elb_info = {
-    enabled = [{
-      elb_info = [{
-        name = "${var.clb_name}"
-      }]
-    }]
-
-    disabled = "${list()}"
-  }
-
-  enable_trafic_control = "${var.clb_name != "" || var.target_group_name != ""}"
-
-  target_group_info = {
-    enabled = [{
-      target_group_info = [{
-        name = "${var.target_group_name}"
-      }]
-    }]
-
-    disabled = "${list()}"
-  }
-
-  set_elb_info          = "${var.clb_name == "" ? "disabled" : "enabled"}"
-  set_tag_filters       = "${var.ec2_tag_key == "" ? "disabled" : "enabled"}"
-  set_target_group_info = "${var.target_group_name == "" ? "disabled" : "enabled"}"
+  enable_trafic_control = var.clb_name != "" || var.target_group_name != ""
 }
 
 resource "aws_codedeploy_app" "application" {
-  count = "${var.create_application ? 1 : 0}"
+  count = var.create_application ? 1 : 0
 
-  name = "${var.application_name}"
+  name = var.application_name
 }
 
 data "aws_iam_policy_document" "assume_role_policy" {
@@ -83,29 +73,47 @@ data "aws_iam_policy_document" "assume_role_policy" {
 
 resource "aws_iam_role" "role" {
   name_prefix        = "${local.deployment_group_name}-"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
-  role       = "${aws_iam_role.role.name}"
+  role       = aws_iam_role.role.name
 }
 
 resource "aws_codedeploy_deployment_group" "deployment_group" {
-  app_name               = "${local.application_name}"
-  autoscaling_groups     = ["${var.autoscaling_groups}"]
-  deployment_config_name = "${var.deployment_config_name}"
-  deployment_group_name  = "${local.deployment_group_name}"
-  ec2_tag_filter         = "${local.ec2_tag_filters[local.set_tag_filters]}"
-  service_role_arn       = "${aws_iam_role.role.arn}"
+  app_name               = local.application_name
+  autoscaling_groups     = var.autoscaling_groups
+  deployment_config_name = var.deployment_config_name
+  deployment_group_name  = local.deployment_group_name
+  dynamic "ec2_tag_filter" {
+    for_each = var.ec2_tag_key != "" && var.ec2_tag_value != "" ? [local.ec2_tag_filters] : []
+    content {
+      key   = lookup(ec2_tag_filter.value, "key", null)
+      type  = lookup(ec2_tag_filter.value, "type", null)
+      value = lookup(ec2_tag_filter.value, "value", null)
+    }
+  }
+  service_role_arn = aws_iam_role.role.arn
 
   deployment_style {
-    deployment_option = "${local.enable_trafic_control ? "WITH_TRAFFIC_CONTROL" :"WITHOUT_TRAFFIC_CONTROL"}"
+    deployment_option = local.enable_trafic_control ? "WITH_TRAFFIC_CONTROL" : "WITHOUT_TRAFFIC_CONTROL"
     deployment_type   = "IN_PLACE"
   }
 
-  load_balancer_info = ["${concat(
-    local.elb_info[local.set_elb_info],
-    local.target_group_info[local.set_target_group_info],
-  )}"]
+  load_balancer_info {
+    dynamic "elb_info" {
+      for_each = var.clb_name == "" ? [] : [var.clb_name]
+      content {
+        name = elb_info.value
+      }
+    }
+
+    dynamic "target_group_info" {
+      for_each = var.target_group_name == "" ? [] : [var.target_group_name]
+      content {
+        name = target_group_info.value
+      }
+    }
+  }
 }
