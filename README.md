@@ -26,7 +26,7 @@ AWS APIs do not properly clear out the load\_balancer\_info field of a deploymen
 
 | Name | Version |
 |------|---------|
-| aws | ~> 2.7 |
+| aws | >= 2.7.0 |
 
 ## Inputs
 

@@ -28,7 +28,7 @@ terraform {
   required_version = ">= 0.12"
 
   required_providers {
-    aws = "~> 2.7"
+    aws = ">= 2.7.0"
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_iam_role" "role" {
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "AWSCodeDeployRole" {
+resource "aws_iam_role_policy_attachment" "code_deploy_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
   role       = aws_iam_role.role.name
 }
