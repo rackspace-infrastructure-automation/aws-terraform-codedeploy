@@ -21,7 +21,20 @@
  * AWS APIs do not properly clear out the load_balancer_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when the references are completely removed.
  *
  * ## Terraform 0.12 upgrade
- *  No changes are necessary when upgrading to the 0.12 compliant version of this module.
+ *
+ * Several changes were required while adding terraform 0.12 compatibility.  The following changes should be
+ * made when upgrading from a previous release to version 0.12.0 or higher.
+ *
+ * ### Terraform State File
+ *
+ * Several resources were updated with new logical names, better meet current Rackspace style guides.
+ * The following statements can be used to update existing resources.  In each command, `<MODULE_NAME>`
+ * should be replaced with the logic name used where the module is referenced.
+ *
+ * ```
+ * terraform state mv module.<MODULE_NAME>.aws_iam_role_policy_attachment.AWSCodeDeployRole module.<MODULE_NAME>.aws_iam_role_policy_attachment.code_deploy_policy_attachment
+ * ```
+ *
  */
 
 terraform {
