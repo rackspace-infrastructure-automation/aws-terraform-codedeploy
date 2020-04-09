@@ -103,7 +103,7 @@ module "clb" {
 module "codedeploy" {
   source = "../../module"
 
-  application_name  = "${random_string.rstring.result}-APP"
+  application_name  = "${random_string.rstring.result}-TESTAPP"
   target_group_name = element(module.alb.target_group_names, 0)
 }
 
@@ -113,7 +113,7 @@ module "codedeploy_tg" {
 
   application_name      = module.codedeploy.application_name
   create_application    = false
-  deployment_group_name = "${random_string.rstring.result}-DeployGroup-TG"
+  deployment_group_name = "${random_string.rstring.result}-TestDeployGroup-TG"
   target_group_name     = element(module.alb.target_group_names, 0)
 }
 
@@ -123,7 +123,7 @@ module "codedeploy_clb" {
   application_name      = module.codedeploy.application_name
   clb_name              = module.clb.name
   create_application    = false
-  deployment_group_name = "${random_string.rstring.result}-DeployGroup-CLB"
+  deployment_group_name = "${random_string.rstring.result}-TestDeployGroup-CLB"
 }
 
 
