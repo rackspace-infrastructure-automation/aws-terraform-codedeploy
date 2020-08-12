@@ -28,13 +28,13 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.0.10"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.12.2"
 
   name = "Test1VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.0.6"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.12.2"
 
   environment = "Production"
   name        = "Test-SG"
@@ -42,7 +42,7 @@ module "security_groups" {
 }
 
 module "clb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.0.8"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.12.1"
 
   connection_draining_timeout = 300
   instances                   = []
@@ -67,7 +67,7 @@ module "asg" {
   image_id                 = data.aws_ami.amz_linux_2.image_id
   install_codedeploy_agent = true
   instance_type            = "t2.micro"
-  load_balancer_names      = [module.clb.clb_name]
+  load_balancer_names      = [module.clb.name]
   name                     = "CodeDeployExample"
   security_groups          = [module.security_groups.private_web_security_group_id]
   scaling_max              = 2
@@ -79,8 +79,8 @@ module "codedeploy" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
 
   application_name      = "MyCodeDeployApp"
-  autoscaling_groups    = [module.asg.asg_name_list]
-  clb_name              = module.clb.clb_name
+  autoscaling_groups    = module.asg.asg_name_list
+  clb_name              = module.clb.name
   deployment_group_name = "MyCodeDeployDeploymentGroup"
 }
 

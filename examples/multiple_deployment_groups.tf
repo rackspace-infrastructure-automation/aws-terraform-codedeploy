@@ -73,7 +73,7 @@ module "codedeploy_prod" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
 
   application_name   = "MyCodeDeployApp"
-  autoscaling_groups = [module.asg_prod.asg_name_list]
+  autoscaling_groups = module.asg_prod.asg_name_list
   environment        = "Prod"
 }
 
@@ -81,7 +81,7 @@ module "codedeploy_test" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
 
   application_name       = module.codedeploy_prod.application_name
-  autoscaling_groups     = [module.asg_test.asg_name_list]
+  autoscaling_groups     = module.asg_test.asg_name_list
   create_application     = false
   deployment_config_name = "CodeDeployDefault.AllAtOnce"
   environment            = "Test"
