@@ -12,7 +12,7 @@ provider "random" {
 }
 
 resource "random_string" "rstring" {
-  length      = 15
+  length      = 4
   special     = false
   min_upper   = 1
   min_lower   = 1
