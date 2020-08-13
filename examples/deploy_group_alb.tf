@@ -28,13 +28,13 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.0.10"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.12.2"
 
   name = "Test1VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.0.6"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.12.2"
 
   environment = "Production"
   name        = "Test-SG"
@@ -87,7 +87,7 @@ module "codedeploy" {
   source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-codedeploy//?ref=v0.12.0"
 
   application_name      = "MyCodeDeployApp"
-  autoscaling_groups    = [module.asg.asg_name_list]
+  autoscaling_groups    = module.asg.asg_name_list
   deployment_group_name = "MyCodeDeployDeploymentGroup"
   target_group_name     = element(module.alb.target_group_names, 0)
 }
