@@ -3,7 +3,7 @@ terraform {
 }
 
 provider "aws" {
-  version = "~> 2.7"
+  version = "~> 3.0"
   region  = "us-east-1"
 }
 
@@ -12,7 +12,7 @@ provider "random" {
 }
 
 resource "random_string" "rstring" {
-  length      = 15
+  length      = 8
   special     = false
   min_upper   = 1
   min_lower   = 1
@@ -40,13 +40,13 @@ data "aws_ami" "amz_linux_2" {
 }
 
 module "vpc" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=v0.12.0"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-vpc_basenetwork//?ref=master"
 
   name = "${random_string.rstring.result}-VPC"
 }
 
 module "security_groups" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=v0.12.0"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-security_group//?ref=master"
 
   environment = "Production"
   name        = "${random_string.rstring.result}-SG"
@@ -54,7 +54,7 @@ module "security_groups" {
 }
 
 module "alb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=v0.12.0"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-alb//?ref=master"
 
   create_logging_bucket = false
   http_listeners_count  = 1
@@ -75,13 +75,13 @@ module "alb" {
     {
       "backend_port"     = 80
       "backend_protocol" = "HTTP"
-      "name"             = "${random_string.rstring.result}-TargetGroup"
+      "name"             = "${random_string.rstring.result}-TG"
     },
   ]
 }
 
 module "clb" {
-  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=v0.12.0"
+  source = "git@github.com:rackspace-infrastructure-automation/aws-terraform-clb//?ref=master"
 
   connection_draining_timeout = 300
   instances                   = []
@@ -104,6 +104,7 @@ module "codedeploy" {
   source = "../../module"
 
   application_name  = "${random_string.rstring.result}-TESTAPP"
+  environment       = "dev"
   target_group_name = element(module.alb.target_group_names, 0)
 }
 
@@ -113,7 +114,7 @@ module "codedeploy_tg" {
 
   application_name      = module.codedeploy.application_name
   create_application    = false
-  deployment_group_name = "${random_string.rstring.result}-TestDeployGroup-TG"
+  deployment_group_name = "${random_string.rstring.result}-Test-TG"
   target_group_name     = element(module.alb.target_group_names, 0)
 }
 
@@ -123,7 +124,7 @@ module "codedeploy_clb" {
   application_name      = module.codedeploy.application_name
   clb_name              = module.clb.name
   create_application    = false
-  deployment_group_name = "${random_string.rstring.result}-TestDeployGroup-CLB"
+  deployment_group_name = "${random_string.rstring.result}-Test-CLB"
 }
 
 
