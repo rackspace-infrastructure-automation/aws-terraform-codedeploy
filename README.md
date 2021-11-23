@@ -19,16 +19,34 @@ Full working references are available at [examples](examples)
 
 AWS APIs do not properly clear out the load\_balancer\_info field of a deployment group after removing the CLB\Target group reference.  This results in the Deployment Group trying to apply the change on every update.  We hope this behavior to be resolved after adapting Terraform v0.12.  In the meantime, a new Deployment Group should be created if the load balancer information must be removed.  This issue does not occur when replacing the referenced CLB or Target Group, or when switching between CLB and Target Groups, only when the references are completely removed.
 
+## Requirements
+
+No requirements.
+
 ## Providers
 
 | Name | Version |
 |------|---------|
 | aws | n/a |
 
+## Modules
+
+No Modules.
+
+## Resources
+
+| Name |
+|------|
+| [aws_codedeploy_app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codedeploy_app) |
+| [aws_codedeploy_deployment_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codedeploy_deployment_group) |
+| [aws_iam_policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) |
+| [aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) |
+| [aws_iam_role_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) |
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:-----:|
+|------|-------------|------|---------|:--------:|
 | application\_name | CodeDeploy Application Name.  If an existing Application is being associated, 'create\_application' should be set to false | `string` | n/a | yes |
 | autoscaling\_groups | A List of Autoscaling Group names to associate with the Deployment Group | `list` | `[]` | no |
 | clb\_name | The name of the CLB to associate with this Deployment Group.  If associated, the instances will be taken out of service while the application is deployed.   This variable cannot be used in conjunction with target\_group\_name. | `string` | `""` | no |
@@ -48,4 +66,3 @@ AWS APIs do not properly clear out the load\_balancer\_info field of a deploymen
 | deployment\_group\_iam\_role | IAM Role associated to the CodeDeploy Deployment Group |
 | deployment\_group\_iam\_role\_arn | IAM Role associated to the CodeDeploy Deployment Group |
 | deployment\_group\_name | CodeDeploy Application Name |
-
