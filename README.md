@@ -1,3 +1,7 @@
+> [!CAUTION]
+> This project is end of life. This repo will be deleted on June 2nd 2025.
+
+
 # aws-terraform-codedeploy
 
 This module creates a CodeDeploy deployment group and optionally a CodeDeploy application.
